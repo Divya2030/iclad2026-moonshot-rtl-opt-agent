@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.gate_work/
+.agent_work/
+opt_result/
+verdict.json
+*.vvp
+*.aig

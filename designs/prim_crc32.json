@@ -1,0 +1,37 @@
+{
+  "design": "prim_crc32",
+  "root": "opentitan/hw/ip/prim",
+  "top": "prim_crc32",
+  "rtl_dir": "rtl",
+  "rtl_files": ["prim_crc32.sv"],
+  "syn_dir": "yosys_syn",
+  "equiv": {
+    "enabled": true,
+    "defines": [],
+    "sim_miter": {
+      "fixture": "fixtures/prim_crc32_miter.sv",
+      "golden_module": "DUT_GOLD",
+      "cand_module": "DUT_CAND",
+      "pass_regex": "MITER PASS"
+    }
+  },
+  "sim": {
+    "mode": "iverilog_diff",
+    "cwd": ".",
+    "tb_files": ["pre_dv/prim_crc32/prim_crc32_sim.sv"],
+    "harness_files": ["fixtures/prim_crc32_tb.v"],
+    "iverilog_args": ["-g2012"],
+    "expected": "pre_dv/prim_crc32/predv_expected.txt",
+    "extract_anchor": "00000000",
+    "extract_lines": 98
+  },
+  "syn": {
+    "mode": "tcl",
+    "steps": [["yosys", "-c", "syn.tcl"], ["sta", "run_sta.tcl"]],
+    "filelist_env": "VERILOG_FILELIST",
+    "stat": "syn_results/prim_crc32_synth_stat.txt",
+    "timing": "reports/prim_crc32_sta_timing_report.txt",
+    "paths": "reports/prim_crc32_sta_timing_paths.txt",
+    "power": "reports/prim_crc32_sta_power_report.txt"
+  }
+}

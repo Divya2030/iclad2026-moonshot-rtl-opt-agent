@@ -1,0 +1,24 @@
+{
+  "design": "async_fifo",
+  "root": "async_fifo",
+  "top": "async_fifo",
+  "rtl_dir": "rtl",
+  "rtl_files": ["async_fifo.v", "fifomem.v", "rptr_empty.v",
+                "sync_r2w.v", "sync_w2r.v", "wptr_full.v"],
+  "syn_dir": "yosys_syn",
+  "equiv": { "enabled": true, "defines": ["DSIZE=32", "ASIZE=4"] },
+  "sim": {
+    "mode": "svut",
+    "cwd": "sim",
+    "defines": ["AFULL=1;AEMPTY=1", "AFULL=3;AEMPTY=2"]
+  },
+  "syn": {
+    "mode": "run_syn_sh",
+    "cmd": ["./run_syn.sh", "all"],
+    "verilog_files_env": "VERILOG_FILES",
+    "stat": "syn_results/synth_stat.txt",
+    "timing": "reports/sta_timing_report.txt",
+    "paths": "reports/sta_timing_paths.txt",
+    "power": "reports/sta_power_report.txt"
+  }
+}

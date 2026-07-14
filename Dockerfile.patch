@@ -1,0 +1,52 @@
+diff --git a/Dockerfile b/Dockerfile
+index fdff8da9..26f550d5 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -73,11 +73,14 @@ RUN git clone https://github.com/steveicarus/iverilog.git && \
+ 
+ # Build and install Yosys from source
+ WORKDIR /tmp
++# Pin Yosys to a release tag: upstream HEAD removed the Makefile `config-clang`
++# target, which broke the unpinned build. v0.50 keeps the GNU Makefile flow;
++# pass CONFIG on the command line so we don't depend on the config-* phony.
+ RUN git clone https://github.com/YosysHQ/yosys.git && \
+     cd yosys && \
++    git checkout v0.50 && \
+     git submodule update --init && \
+-    make config-clang && \
+-    make -j$(nproc) && \
++    make -j$(nproc) CONFIG=gcc && \
+     make install && \
+     cd / && \
+     rm -rf /tmp/yosys
+@@ -96,8 +99,12 @@ RUN git clone https://github.com/verilator/verilator.git && \
+     cd / && \
+     rm -rf /tmp/verilator
+ 
+-# Set Verilator environment
+-ENV VERILATOR_ROOT=/usr/local/share/verilator
++# NOTE: do NOT set VERILATOR_ROOT for a `make install`-ed Verilator. The
++# installed `verilator` wrapper auto-detects verilator_bin in /usr/local/bin;
++# pointing VERILATOR_ROOT at the share/ dir makes it look for
++# $VERILATOR_ROOT/verilator_bin (which does not exist there) and fail with
++# "Misinstalled, or VERILATOR_ROOT might need to be in environment".
++# (Left unset on purpose.)
+ 
+ # Install additional dependencies for OpenSTA
+ RUN apt-get update -y && apt-get install -y --no-install-recommends \
+@@ -144,8 +151,13 @@ RUN wget -q https://github.com/zachjs/sv2v/releases/download/v0.0.12/sv2v-Linux.
+ # Create working directory
+ WORKDIR /workspace
+ 
+-# Verify installations
+-RUN iverilog -V && verilator --version && yosys --version && fusesoc --version && sta -version && sv2v --version
++# Verify installations: check each tool is present on PATH. We do NOT chain on
++# each tool's own exit code, because some (e.g. `sta -version`) print a version
++# yet return non-zero, which would spuriously fail the build.
++RUN for t in iverilog verilator yosys fusesoc sta sv2v; do \
++        command -v "$t" >/dev/null 2>&1 || { echo "MISSING TOOL: $t"; exit 1; }; \
++        echo "found: $t -> $(command -v $t)"; \
++    done
+ 
+ # Default command
+ CMD ["/bin/bash"]

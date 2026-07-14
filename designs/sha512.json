@@ -1,0 +1,25 @@
+{
+  "design": "sha512",
+  "root": "sha512",
+  "top": "sha512",
+  "rtl_dir": "src/rtl",
+  "rtl_files": ["sha512.v", "sha512_core.v", "sha512_h_constants.v",
+                "sha512_k_constants.v", "sha512_w_mem.v"],
+  "syn_dir": "yosys_syn",
+  "equiv": { "enabled": true, "defines": [] },
+  "sim": {
+    "mode": "iverilog_tb",
+    "cwd": ".",
+    "tb_files": ["src/tb/tb_sha512.v"],
+    "iverilog_args": ["-g2012"]
+  },
+  "syn": {
+    "mode": "run_syn_sh",
+    "cmd": ["./run_syn.sh", "all"],
+    "verilog_files_env": "VERILOG_FILES",
+    "stat": "syn_results/synth_stat.txt",
+    "timing": "reports/sta_timing_report.txt",
+    "paths": "reports/sta_timing_paths.txt",
+    "power": "reports/sta_power_report.txt"
+  }
+}
