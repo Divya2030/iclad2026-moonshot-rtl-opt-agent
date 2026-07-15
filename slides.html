@@ -296,11 +296,11 @@
       <thead><tr><th>Rewrite</th><th>Sim</th><th>Equiv</th><th>Decision</th></tr></thead>
       <tbody>
         <tr><td>inverted empty-flag (async_fifo)</td><td><span class="pill r">fail</span></td><td><span class="pill r">fail</span></td><td>rejected</td></tr>
-        <tr><td>dropped XOR term (crc32 flatten)</td><td class="muted">—</td><td><span class="pill r">refuted</span></td><td>rejected</td></tr>
+        <tr><td>dropped XOR term (crc32 flatten)</td><td><span class="pill p">pass</span></td><td><span class="pill r">refuted</span></td><td>rejected</td></tr>
         <tr><td>CRC linearize (correct)</td><td><span class="pill p">pass</span></td><td><span class="pill p">proven</span></td><td>adopted</td></tr>
       </tbody>
     </table>
-    <p class="note">No functionally-broken rewrite was ever adopted, at any confidence tier — which is precisely the hidden-test defense.</p>
+    <p class="note">Row 2 is the key case: the functional testbench <b>passed</b> a broken rewrite (it exercises a different width), and the <b>equivalence miter</b> caught it — why we don't rely on the given TB alone. No functionally-broken rewrite was ever adopted, at any tier.</p>
   </div>
   <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
 </section>
