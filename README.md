@@ -75,6 +75,29 @@ Requires on PATH: `yosys`, `iverilog`/`vvp`, `sta`, `sv2v` (all in `iclad-dev:v1
 `ASAP7_LIB_DIR` defaults to the Docker `/workspace/techlib/...` path (override for host runs).
 Offline check without a key: add `--backend mock` to step 5.
 
+## Reproducing the two prim_crc32 results
+```bash
+# area -3.19% (proven): agent's masked-XOR / linearize rewrite
+python3 async_fifo/verif_gate/opt_agent.py --config async_fifo/verif_gate/designs/prim_crc32.json \
+    --backend mock --objective area --iters 1     # 92.35 -> 89.40 um^2, equiv proven
+
+# timing (proven): balanced masked-XOR tree
+python3 async_fifo/verif_gate/opt_agent.py --config async_fifo/verif_gate/designs/prim_crc32.json \
+    --backend mock --objective timing --iters 1    # WNS -282 -> -270 ps, equiv proven
+
+# timing (sim-verified): full GF(2) datapath flatten -> nearly closes timing.
+#   Formal EC is SAT-hard here (XOR/parity) and times out, so the tiered gate
+#   falls back to the simulation miter -> "sim-verified".
+python3 async_fifo/verif_gate/gen_crc_flat.py \
+    opentitan/hw/ip/prim/rtl/prim_crc32.sv /tmp/crc_flat/prim_crc32.sv
+EQUIV_TIMEOUT=120 python3 async_fifo/verif_gate/run_gate.py \
+    --config async_fifo/verif_gate/designs/prim_crc32.json \
+    --candidate /tmp/crc_flat --json flat_verdict.json   # WNS -282 -> -9 ps, sim-verified
+```
+`gen_crc_flat.py` symbolically flattens the 4-byte CRC recurrence into one
+GF(2)-linear network; the derivation is verified by the gate (5000-vector
+simulation miter, and it correctly rejects a corrupted variant).
+
 ## Adding an IP
 Drop a `designs/<ip>.json` (top module, RTL files, sim mode, synth flow, equiv);
 no code change. Validated on **async_fifo**, **sha512**, **prim_crc32**
