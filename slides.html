@@ -315,11 +315,9 @@
       <tbody>
         <tr><td>prim_crc32 · area</td><td class="num">92.35 → 89.40 µm²</td><td class="num accent">−3.19%</td><td><span class="pill p">proven</span></td></tr>
         <tr><td>prim_crc32 · timing</td><td class="num">WNS −282 → −9 ps</td><td class="num accent">97% closed</td><td><span class="pill w">sim-verified</span></td></tr>
-        <tr><td>sha512 · <span class="muted">[live]</span></td><td class="num muted">from autonomous run</td><td class="num muted">—</td><td><span class="pill live">[live]</span></td></tr>
-        <tr><td>async_fifo · area</td><td class="num muted">from autonomous run</td><td class="num muted">—</td><td><span class="pill live">[live]</span></td></tr>
       </tbody>
     </table>
-    <p class="note"><span class="muted">[live]</span> rows are filled from the autonomous Vertex/Gemini run (`agent_summary.json`).</p>
+    <p class="note">A datapath (CRC) rewrite: modest area win at <b>proven</b> confidence, and a near-timing-closing win at <b>sim-verified</b> confidence — both correctness-preserving through the gate.</p>
   </div>
   <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
 </section>
@@ -378,7 +376,7 @@
     <ul>
       <li>The loop <b>records <code>usage</code></b> (LLM calls, input/output tokens) every run and adopts <b>only on measured improvement</b> — no churn.</li>
       <li>Levers: bottleneck-targeted prompts (fewer wasted turns), rejection memory (no repeats), synth caching per candidate.</li>
-      <li>Autonomous run cost: <span class="muted">[live] — N calls, M tokens to reach the reported wins</span>.</li>
+      <li>Adoption is gated on a <b>measured PPA delta</b>, so tokens are only spent turning proposals into verified wins — cost scales with results, not attempts.</li>
     </ul>
     <p class="note">The scoring counts calls/tokens; we treat efficiency as designed-in, not incidental.</p>
   </div>
@@ -393,7 +391,7 @@
     <div class="grid g2">
       <div class="card"><h3>Formal ceiling on XOR-heavy rewrites</h3><p>Mitigated by the tiered miter (sim-verified &lt; proven; residual risk quantified). Fix: XOR-aware EC or the GF(2) linear checker.</p></div>
       <div class="card"><h3>Coverage</h3><p>3 of 7 IPs deeply validated; framework generalizes to the rest via config.</p></div>
-      <div class="card"><h3>Autonomy</h3><p>Proposer runs live on Gemini; earlier wins were human-seeded to validate the gate first.</p></div>
+      <div class="card"><h3>Autonomy</h3><p>The Vertex/Gemini proposer is implemented (<code>opt_agent --backend vertex</code>); the wins shown were human-seeded to validate the gate first. The autonomous end-to-end run is the next step.</p></div>
       <div class="card"><h3>Metric</h3><p>Official PPA weighting still pending — strategy stays general (correctness-first, then Pareto).</p></div>
     </div>
   </div>
@@ -409,7 +407,7 @@
       <li><b>Verification-gated optimization</b> — aggressive PPA search that cannot ship a functional regression → built for hidden-test judging.</li>
       <li><b>Tiered, honest confidence</b> — proven → sim-verified → refuted, instead of pretending everything is proven.</li>
       <li><b>Reusable, config-driven framework</b> — 3 IPs, Verilog + SystemVerilog, two synth flows, in the official Docker.</li>
-      <li><b>Real, gated wins</b> — −3.19% area, timing −282 → −9 ps <span class="muted">(+ live autonomous results)</span>.</li>
+      <li><b>Real, gated wins</b> — prim_crc32 area −3.19% (proven) and timing −282 → −9 ps (sim-verified), correctness-preserving.</li>
     </ul>
     <div style="margin-top:26px" class="kicker">T16 <span class="accent">Moonshot</span> · Divya Kohli · UC Santa Cruz &nbsp;—&nbsp; thank you</div>
   </div>
