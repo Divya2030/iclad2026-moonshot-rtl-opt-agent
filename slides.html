@@ -1,0 +1,441 @@
+<style>
+  :root{
+    --bg:#f5f7f9; --surface:#ffffff; --surface-2:#eef1f5;
+    --ink:#131820; --muted:#59636f; --line:#e0e5ec;
+    --accent:#0c9b8a; --accent-ink:#0a7d6f;      /* verified teal */
+    --pass:#1a9c5c; --warn:#b07d09; --reject:#c23b2b;
+    --term-bg:#0e141c; --term-ink:#cdd8e4; --term-dim:#7f8b9c;
+    --font: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --maxw: 1040px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0c0f14; --surface:#141a22; --surface-2:#1b222c;
+      --ink:#e7ecf3; --muted:#95a1b1; --line:#232c38;
+      --accent:#2ad3bf; --accent-ink:#79ecdd;
+      --pass:#3fbf7f; --warn:#e0a92a; --reject:#e8604e;
+      --term-bg:#080b10; --term-ink:#cdd8e4; --term-dim:#6f7c8d;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f7f9; --surface:#ffffff; --surface-2:#eef1f5; --ink:#131820; --muted:#59636f;
+    --line:#e0e5ec; --accent:#0c9b8a; --accent-ink:#0a7d6f; --pass:#1a9c5c; --warn:#b07d09;
+    --reject:#c23b2b; --term-bg:#0e141c; --term-ink:#cdd8e4; --term-dim:#7f8b9c;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0c0f14; --surface:#141a22; --surface-2:#1b222c; --ink:#e7ecf3; --muted:#95a1b1;
+    --line:#232c38; --accent:#2ad3bf; --accent-ink:#79ecdd; --pass:#3fbf7f; --warn:#e0a92a;
+    --reject:#e8604e; --term-bg:#080b10; --term-ink:#cdd8e4; --term-dim:#6f7c8d;
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth; scroll-snap-type:y mandatory}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font);
+       line-height:1.5; -webkit-font-smoothing:antialiased}
+
+  /* progress + counter */
+  .rail{position:fixed; top:0; left:0; right:0; height:3px; background:transparent; z-index:50}
+  .rail > i{display:block; height:100%; width:0; background:var(--accent); transition:width .2s}
+  .counter{position:fixed; bottom:14px; right:18px; z-index:50; font:600 12px/1 var(--mono);
+    letter-spacing:.08em; color:var(--muted); background:var(--surface); border:1px solid var(--line);
+    padding:6px 9px; border-radius:6px; font-variant-numeric:tabular-nums}
+
+  .slide{min-height:100vh; scroll-snap-align:start; display:flex; flex-direction:column;
+    justify-content:center; padding:72px clamp(20px,6vw,90px) 84px; position:relative; border-bottom:1px solid var(--line)}
+  .wrap{width:100%; max-width:var(--maxw); margin:0 auto}
+  .foot{position:absolute; bottom:26px; left:clamp(20px,6vw,90px); font:600 11px/1 var(--mono);
+    letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+  .foot b{color:var(--accent-ink)}
+
+  .eyebrow{font:700 12px/1 var(--mono); letter-spacing:.22em; text-transform:uppercase;
+    color:var(--accent-ink); margin:0 0 18px}
+  h1{font-size:clamp(34px,6vw,64px); line-height:1.02; letter-spacing:-.02em; margin:0 0 20px;
+    text-wrap:balance; font-weight:800}
+  h2{font-size:clamp(26px,3.6vw,40px); line-height:1.08; letter-spacing:-.015em; margin:0 0 22px;
+    text-wrap:balance; font-weight:750}
+  .lead{font-size:clamp(17px,1.9vw,21px); color:var(--muted); max-width:64ch; text-wrap:pretty}
+  p{margin:0 0 14px}
+  strong{color:var(--ink)}
+
+  ul{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:14px}
+  li{position:relative; padding-left:26px; font-size:clamp(15px,1.6vw,18px); max-width:70ch}
+  li::before{content:""; position:absolute; left:2px; top:.62em; width:9px; height:9px;
+    background:var(--accent); border-radius:2px; transform:rotate(45deg)}
+  li b{color:var(--ink)}
+  .muted{color:var(--muted)}
+  .accent{color:var(--accent-ink)}
+
+  .grid{display:grid; gap:16px}
+  .g2{grid-template-columns:1fr 1fr}
+  @media(max-width:760px){.g2{grid-template-columns:1fr}}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:20px 22px}
+  .card h3{margin:0 0 8px; font-size:15px; letter-spacing:.02em}
+  .card p{margin:0; color:var(--muted); font-size:14.5px}
+  .kicker{font:700 11px/1 var(--mono); letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+
+  /* pipeline diagram */
+  .flow{display:flex; align-items:stretch; gap:10px; flex-wrap:wrap; margin-top:8px}
+  .node{flex:1 1 140px; background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:14px 14px; min-width:120px}
+  .node .t{font:700 11px/1 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--accent-ink)}
+  .node .d{font-size:13.5px; color:var(--muted); margin-top:7px}
+  .node.gate{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset}
+  .arrow{align-self:center; color:var(--muted); font:700 18px/1 var(--mono)}
+  .fb{margin-top:12px; font:600 12px/1.4 var(--mono); color:var(--muted); letter-spacing:.02em}
+  .fb b{color:var(--accent-ink)}
+
+  /* confidence ladder */
+  .ladder{display:flex; flex-direction:column; gap:10px; margin-top:6px}
+  .rung{display:flex; align-items:center; gap:14px; background:var(--surface); border:1px solid var(--line);
+    border-left-width:5px; border-radius:10px; padding:13px 16px}
+  .rung .lbl{font:700 13px/1 var(--mono); letter-spacing:.06em; min-width:120px}
+  .rung .txt{color:var(--muted); font-size:14px}
+  .rung.pass{border-left-color:var(--pass)} .rung.pass .lbl{color:var(--pass)}
+  .rung.warn{border-left-color:var(--warn)} .rung.warn .lbl{color:var(--warn)}
+  .rung.rej{border-left-color:var(--reject)} .rung.rej .lbl{color:var(--reject)}
+
+  /* data table */
+  .tbl{width:100%; border-collapse:collapse; font-size:14.5px; margin-top:6px}
+  .tbl th,.tbl td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line)}
+  .tbl th{font:700 11px/1 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+  .tbl td{font-variant-numeric:tabular-nums}
+  .tbl .num{font-family:var(--mono)}
+  .pill{display:inline-block; font:700 11px/1 var(--mono); letter-spacing:.04em; padding:4px 8px;
+    border-radius:999px; border:1px solid}
+  .pill.p{color:var(--pass); border-color:var(--pass)}
+  .pill.w{color:var(--warn); border-color:var(--warn)}
+  .pill.r{color:var(--reject); border-color:var(--reject)}
+  .pill.live{color:var(--muted); border-color:var(--line); border-style:dashed}
+
+  /* bars */
+  .bars{display:flex; flex-direction:column; gap:14px; margin-top:8px}
+  .bar{display:grid; grid-template-columns:150px 1fr auto; align-items:center; gap:14px}
+  .bar .name{font:600 13px/1.2 var(--mono); color:var(--ink)}
+  .bar .track{height:16px; background:var(--surface-2); border-radius:8px; overflow:hidden}
+  .bar .fill{height:100%; background:var(--accent); border-radius:8px}
+  .bar .val{font:700 13px/1 var(--mono); color:var(--accent-ink); font-variant-numeric:tabular-nums}
+
+  /* terminal / code */
+  .term{background:var(--term-bg); color:var(--term-ink); border-radius:12px; padding:18px 20px;
+    font:13.5px/1.6 var(--mono); overflow-x:auto; border:1px solid rgba(255,255,255,.06)}
+  .term .c{color:var(--term-dim)}
+  .term .k{color:var(--accent)}
+  .term .g{color:var(--pass)} .term .rj{color:var(--reject)}
+
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:26px; align-items:start}
+  @media(max-width:820px){.two{grid-template-columns:1fr}}
+  .note{font-size:13px; color:var(--muted); border-left:3px solid var(--line); padding-left:12px; margin-top:16px}
+  .tag{display:inline-block; font:700 10.5px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); border:1px solid var(--line); border-radius:5px; padding:4px 7px; margin:3px 6px 0 0}
+</style>
+
+<div class="rail"><i id="railfill"></i></div>
+<div class="counter"><span id="cnum">01</span> / 15</div>
+
+<!-- 1 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">ICLAD 2026 GenAI Chip Hackathon · NVIDIA · Cloud Track</p>
+    <h1>Verification-Gated RTL Optimization</h1>
+    <p class="lead">Optimize aggressively with an LLM — <strong>ship only what's proven correct.</strong>
+      A Gemini agent rewrites RTL for power/performance/area; a formal + simulation gate refuses
+      any rewrite that changes behavior.</p>
+    <div style="margin-top:30px" class="kicker">Team T16 · <span class="accent">Moonshot</span> &nbsp;·&nbsp; Divya Kohli &nbsp;·&nbsp; UC Santa Cruz</div>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">The problem &amp; how it's scored</p>
+    <h2>Correctness is the gate. PPA is the prize. Hidden tests are the judge.</h2>
+    <div class="two">
+      <ul>
+        <li>Use an LLM agent to optimize IP RTL — async_fifo, sha512, NVDLA, OpenTitan AES / ASCON / PRIM / KMAC.</li>
+        <li><b>Two-phase scoring:</b> functional correctness first → then PPA (Yosys / OpenSTA) + LLM calls &amp; token cost.</li>
+        <li><b>Winners judged at DAC on hidden testcases</b> — passing the visible testbench is not enough.</li>
+      </ul>
+      <div class="card">
+        <h3 class="accent">Consequence</h3>
+        <p>An "optimization" that looks smaller/faster but is subtly wrong scores <b>zero</b> — and hidden tests are built to find it. So correctness-under-uncertainty is the real competition.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">Key insight · our thesis</p>
+    <h2>The failure mode that loses the hackathon is a <span class="accent">silent</span> functional regression.</h2>
+    <div class="two">
+      <ul>
+        <li>We proved it's real: a candidate with <b>lower area that passed simulation but was formally inequivalent</b> — and the reverse.</li>
+        <li><b>Thesis:</b> make <b>formal equivalence a hard gate</b> inside the optimization loop.</li>
+        <li>Then the agent can chase PPA hard, because the gate — not the model — decides what ships.</li>
+      </ul>
+      <div class="grid">
+        <div class="card" style="border-color:var(--reject)"><h3 style="color:var(--reject)">PPA-only optimizer</h3><p>Fast. Passes the visible bench. Ships silent bugs → fails hidden tests.</p></div>
+        <div class="card" style="border-color:var(--pass)"><h3 style="color:var(--pass)">Verification-gated</h3><p>Fast <i>and</i> safe. Aggressive rewrites, zero accepted regressions.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">System architecture</p>
+    <h2>Model proposes. The gate decides. Loop.</h2>
+    <div class="flow">
+      <div class="node"><div class="t">Propose</div><div class="d">Gemini rewrite, steered by the synthesis bottleneck</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">Apply</div><div class="d">overlay on golden RTL (never mutated)</div></div>
+      <div class="arrow">→</div>
+      <div class="node gate"><div class="t">Gate</div><div class="d">SIM · EQUIV · PPA — measured, reproducible</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">Adopt / reject</div><div class="d">only if correct AND improved</div></div>
+    </div>
+    <p class="fb">↺ feedback each round: <b>bottleneck breakdown</b> + <b>rejection memory</b> (what failed &amp; why)</p>
+    <p class="note">The loop is deterministic Python; the model only proposes. Adoption is decided by the gate's measured verdict, never the model's claim.</p>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">Agent design · the proposer</p>
+    <h2>Transformation-driven, not "make it smaller."</h2>
+    <div class="two">
+      <ul>
+        <li>Sees the real <b>synthesis bottleneck</b> — sequential vs combinational area, dominant cell types.</li>
+        <li>Handed a <b>transformation menu</b> grounded in RTLRewriter / ROVER / ASPEN (register, FSM, resource-sharing, operator-restructuring, width, boolean, strength).</li>
+        <li>Told <b>not to repeat</b> what Yosys + ABC already do; keeps <b>rejection memory</b> across rounds.</li>
+        <li>Emits surgical edits <i>or</i> whole-file rewrites; records <b>LLM calls + tokens</b> (the scored cost).</li>
+      </ul>
+      <div class="term"><span class="c"># prompt (abridged)</span><br>
+        objective: minimize <span class="k">area</span><br>
+        bottleneck: seq 13% · comb 87%<br>
+        &nbsp;&nbsp;top: XOR2×227, INV×90, OAI21×54<br>
+        menu: T1 reg · T4 <span class="k">operator-restructuring</span> …<br>
+        rejected so far: <span class="c">(none)</span><br>
+        return: {edits|files}, equivalence-preserving
+      </div>
+    </div>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">The verification gate</p>
+    <h2>Three gates, one verdict.</h2>
+    <div class="grid g2">
+      <div class="card"><h3 class="accent">SIM</h3><p>The scored correctness check — SVUT / Icarus / plain-Verilog TBs. Hard gate.</p></div>
+      <div class="card"><h3 class="accent">EQUIV</h3><p>Yosys-native sequential equivalence (bundled SAT + ABC — no external solver, runs in the eval Docker as-is).</p></div>
+      <div class="card"><h3 class="accent">PPA</h3><p>Yosys synth + OpenSTA on ASAP7 — area, WNS, worst-slack, power, plus a cell-level bottleneck.</p></div>
+      <div class="card"><h3 class="accent">Timing = relative</h3><p>Reject only on WNS <i>regression</i> — designs can start timing-negative (sha512 −169 ps).</p></div>
+    </div>
+    <div class="term" style="margin-top:18px"><span class="c">// verdict.json</span> { "sim":<span class="g">true</span>, "equiv":{"verified":<span class="g">true</span>}, "ppa":{"area_um2":89.4,"wns_ps":-9.0}, "accept":<span class="g">true</span> }</div>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">Tiered equivalence · a real finding</p>
+    <h2>XOR/parity datapaths are SAT-hard — so we tier the evidence, honestly.</h2>
+    <div class="two">
+      <div class="ladder">
+        <div class="rung pass"><span class="lbl">proven</span><span class="txt">formal proof converges → highest confidence</span></div>
+        <div class="rung warn"><span class="lbl">sim-verified</span><span class="txt">formal inconclusive → directed + 20k-vector miter passes</span></div>
+        <div class="rung rej"><span class="lbl">refuted</span><span class="txt">miter finds a mismatch → hard reject</span></div>
+      </div>
+      <ul>
+        <li>Measured: the CRC "flatten" defeated <b>both</b> Yosys-native equiv <b>and</b> ABC SAT-sweeping CEC (each &gt; 6 min timeout).</li>
+        <li>Confidence level travels with every verdict — we don't pretend everything is <span class="accent">proven</span>.</li>
+        <li>Future: XOR-aware EC (<span class="muted">eqy / CryptoMiniSat</span>) or our GF(2) linear checker to reclaim <span class="accent">proven</span>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">One framework, many IPs</p>
+    <h2>Config-driven. Add an IP with a JSON file.</h2>
+    <table class="tbl">
+      <thead><tr><th>IP</th><th>Language</th><th>Sim</th><th>Synth flow</th><th>Equiv</th></tr></thead>
+      <tbody>
+        <tr><td>async_fifo</td><td>Verilog</td><td>SVUT</td><td>run_syn.sh</td><td><span class="pill p">proven</span></td></tr>
+        <tr><td>sha512</td><td>Verilog</td><td>Icarus TB</td><td>run_syn.sh</td><td><span class="pill p">proven</span></td></tr>
+        <tr><td>prim_crc32</td><td>SystemVerilog</td><td>verilator pre-DV</td><td>syn.tcl + sv2v</td><td><span class="pill p">proven</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">3 IPs · Verilog + SystemVerilog · 3 sim frameworks · 2 synth flows · sv2v — the harness generalizes; adding an IP is config + (if needed) a small sim fixture, not a rewrite.</p>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 9 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">Results · correctness</p>
+    <h2>The gate has teeth.</h2>
+    <table class="tbl">
+      <thead><tr><th>Rewrite</th><th>Sim</th><th>Equiv</th><th>Decision</th></tr></thead>
+      <tbody>
+        <tr><td>inverted empty-flag (async_fifo)</td><td><span class="pill r">fail</span></td><td><span class="pill r">fail</span></td><td>rejected</td></tr>
+        <tr><td>dropped XOR term (crc32 flatten)</td><td class="muted">—</td><td><span class="pill r">refuted</span></td><td>rejected</td></tr>
+        <tr><td>CRC linearize (correct)</td><td><span class="pill p">pass</span></td><td><span class="pill p">proven</span></td><td>adopted</td></tr>
+      </tbody>
+    </table>
+    <p class="note">No functionally-broken rewrite was ever adopted, at any confidence tier — which is precisely the hidden-test defense.</p>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 10 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">Results · PPA wins (gated, correctness-preserving)</p>
+    <h2>Every number here survived the correctness gate.</h2>
+    <table class="tbl">
+      <thead><tr><th>IP · objective</th><th>Baseline → best</th><th>Δ</th><th>Confidence</th></tr></thead>
+      <tbody>
+        <tr><td>prim_crc32 · area</td><td class="num">92.35 → 89.40 µm²</td><td class="num accent">−3.19%</td><td><span class="pill p">proven</span></td></tr>
+        <tr><td>prim_crc32 · timing</td><td class="num">WNS −282 → −9 ps</td><td class="num accent">97% closed</td><td><span class="pill w">sim-verified</span></td></tr>
+        <tr><td>sha512 · <span class="muted">[live]</span></td><td class="num muted">from autonomous run</td><td class="num muted">—</td><td><span class="pill live">[live]</span></td></tr>
+        <tr><td>async_fifo · area</td><td class="num muted">from autonomous run</td><td class="num muted">—</td><td><span class="pill live">[live]</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note"><span class="muted">[live]</span> rows are filled from the autonomous Vertex/Gemini run (`agent_summary.json`).</p>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 11 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">Case study · the CRC datapath flatten</p>
+    <h2>A hard, high-value rewrite — correctly gated.</h2>
+    <div class="two">
+      <ul>
+        <li><b>Bottleneck:</b> 4-deep <b>serial</b> byte-CRC chain (~14 logic levels) → WNS −282 ps.</li>
+        <li><b>Rewrite (ASPEN-style):</b> collapse the linear recurrence into one depth-~5 <b>GF(2) XOR network</b>.</li>
+        <li><b>Result:</b> WNS <b>−282 → −9 ps</b> (timing essentially closed), area +59% (tradeoff), 5000-vector miter <span class="accent">PASS</span>.</li>
+        <li>Formal equiv timed out (XOR-hard) → accepted <span class="pill w">sim-verified</span>; a 1-term corruption → <span class="pill r">refuted</span>.</li>
+      </ul>
+      <div class="bars">
+        <div class="bar"><span class="name">serial (baseline)</span><span class="track"><i class="fill" style="width:100%; background:var(--reject)"></i></span><span class="val">~14 lvl</span></div>
+        <div class="bar"><span class="name">flattened</span><span class="track"><i class="fill" style="width:36%"></i></span><span class="val">~5 lvl</span></div>
+        <div class="bar"><span class="name">WNS closed</span><span class="track"><i class="fill" style="width:97%; background:var(--pass)"></i></span><span class="val">97%</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 12 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">Reproducibility · infrastructure</p>
+    <h2>We operate the official eval environment — and fixed it.</h2>
+    <div class="two">
+      <ul>
+        <li>Found &amp; fixed <b>two real bugs</b> in the official Dockerfile: Yosys <span class="muted">config-clang</span> removed at HEAD → pinned v0.50; Verilator <span class="muted">VERILATOR_ROOT</span> misinstall.</li>
+        <li>ASAP7 techlib + sv2v wired; every run emits <b>verdict + agent-summary JSON</b>.</li>
+        <li>One-command gate and agent loop; public repo with full instructions.</li>
+      </ul>
+      <div class="term"><span class="c"># reproduce</span><br>
+        docker build -t iclad-dev:v1 .<br>
+        python3 <span class="k">run_gate.py</span> --config designs/prim_crc32.json \<br>
+        &nbsp;&nbsp;--candidate opentitan/hw/ip/prim/rtl<br>
+        python3 <span class="k">opt_agent.py</span> --backend vertex \<br>
+        &nbsp;&nbsp;--objective area --iters 8
+      </div>
+    </div>
+    <p class="note">github.com/Divya2030/iclad2026-moonshot-rtl-opt-agent</p>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 13 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">Cost &amp; efficiency</p>
+    <h2>Token &amp; call cost is a first-class metric.</h2>
+    <ul>
+      <li>The loop <b>records <code>usage</code></b> (LLM calls, input/output tokens) every run and adopts <b>only on measured improvement</b> — no churn.</li>
+      <li>Levers: bottleneck-targeted prompts (fewer wasted turns), rejection memory (no repeats), synth caching per candidate.</li>
+      <li>Autonomous run cost: <span class="muted">[live] — N calls, M tokens to reach the reported wins</span>.</li>
+    </ul>
+    <p class="note">The scoring counts calls/tokens; we treat efficiency as designed-in, not incidental.</p>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 14 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">Honest limitations &amp; what's next</p>
+    <h2>What's proven vs assumed — stated plainly.</h2>
+    <div class="grid g2">
+      <div class="card"><h3>Formal ceiling on XOR-heavy rewrites</h3><p>Mitigated by the tiered miter (sim-verified &lt; proven; residual risk quantified). Fix: XOR-aware EC or the GF(2) linear checker.</p></div>
+      <div class="card"><h3>Coverage</h3><p>3 of 7 IPs deeply validated; framework generalizes to the rest via config.</p></div>
+      <div class="card"><h3>Autonomy</h3><p>Proposer runs live on Gemini; earlier wins were human-seeded to validate the gate first.</p></div>
+      <div class="card"><h3>Metric</h3><p>Official PPA weighting still pending — strategy stays general (correctness-first, then Pareto).</p></div>
+    </div>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<!-- 15 -->
+<section class="slide">
+  <div class="wrap">
+    <p class="eyebrow">Key takeaways</p>
+    <h2>Verify, so you can optimize hard.</h2>
+    <ul>
+      <li><b>Verification-gated optimization</b> — aggressive PPA search that cannot ship a functional regression → built for hidden-test judging.</li>
+      <li><b>Tiered, honest confidence</b> — proven → sim-verified → refuted, instead of pretending everything is proven.</li>
+      <li><b>Reusable, config-driven framework</b> — 3 IPs, Verilog + SystemVerilog, two synth flows, in the official Docker.</li>
+      <li><b>Real, gated wins</b> — −3.19% area, timing −282 → −9 ps <span class="muted">(+ live autonomous results)</span>.</li>
+    </ul>
+    <div style="margin-top:26px" class="kicker">T16 <span class="accent">Moonshot</span> · Divya Kohli · UC Santa Cruz &nbsp;—&nbsp; thank you</div>
+  </div>
+  <div class="foot">T16 <b>Moonshot</b> · ICLAD 2026</div>
+</section>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const railfill = document.getElementById('railfill');
+  const cnum = document.getElementById('cnum');
+  function update(){
+    let idx = 0, best = Infinity;
+    slides.forEach((s,i)=>{ const d = Math.abs(s.getBoundingClientRect().top);
+      if(d < best){best = d; idx = i;} });
+    cnum.textContent = String(idx+1).padStart(2,'0');
+    railfill.style.width = ((idx+1)/slides.length*100)+'%';
+  }
+  window.addEventListener('scroll', update, {passive:true});
+  window.addEventListener('resize', update);
+  update();
+  addEventListener('keydown', e=>{
+    if(e.key==='ArrowDown'||e.key==='ArrowRight'||e.key===' '){e.preventDefault();
+      let i=0,b=Infinity; slides.forEach((s,k)=>{const d=Math.abs(s.getBoundingClientRect().top); if(d<b){b=d;i=k;}});
+      slides[Math.min(i+1,slides.length-1)].scrollIntoView();}
+    if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();
+      let i=0,b=Infinity; slides.forEach((s,k)=>{const d=Math.abs(s.getBoundingClientRect().top); if(d<b){b=d;i=k;}});
+      slides[Math.max(i-1,0)].scrollIntoView();}
+  });
+</script>
