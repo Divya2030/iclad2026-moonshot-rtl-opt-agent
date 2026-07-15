@@ -9,7 +9,7 @@ Fill-ins marked `[[ ]]`. `[VISUAL]` = what to show. `NOTES:` = speaker script.
 
 ## Slide 1 — Title
 **Verification-Gated RTL Optimization: optimize aggressively, ship only what's proven correct**
-- Team **T16 — Moonshot** · **Divya Kohli**, UC Santa Cruz
+- Team **T16 — Moonshot** · UC Santa Cruz
 - ICLAD 2026 GenAI Chip Hackathon — NVIDIA problems, Cloud Track (also registered On-Prem)
 
 NOTES: We built a generative-AI agent that optimizes RTL for PPA, wrapped in a verification gate that refuses to accept any functionally-incorrect rewrite. Our bet: the winners are decided on **hidden testcases**, so correctness-under-uncertainty is the real prize.
@@ -177,7 +177,7 @@ NOTES: If you optimize without verifying, hidden tests will find you. We verify,
 
 ### Pre-submission checklist
 - [ ] Replace all `[[ ]]` / `[[LIVE]]` with real values (esp. autonomous Gemini run numbers).
-- [x] Team name/ID, members, affiliation on Slide 1. (T16 Moonshot · Divya Kohli · UCSC)
+- [x] Team name/ID, members, affiliation on Slide 1. (T16 Moonshot · UCSC)
 - [ ] Confirm NVIDIA submission format (runner/entrypoint) before packaging the repo.
 - [ ] Export to the organizers' expected format (PDF/PPTX/Slides).
 - [ ] Register for DAC (I LOVE DAC promo).

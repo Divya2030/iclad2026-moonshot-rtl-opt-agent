@@ -1,6 +1,6 @@
 # ICLAD 2026 — Team T16 "Moonshot" — NVIDIA RTL-Optimization Agent
 
-**Team:** T16 Moonshot · Divya Kohli (UC Santa Cruz) · Cloud Track
+**Team:** T16 Moonshot · UC Santa Cruz · Cloud Track
 **Problem:** NVIDIA RTL optimization (`ICLAD26-NVIDIA-Problems`)
 
 ## What the agent is
