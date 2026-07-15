@@ -129,6 +129,23 @@
   .note{font-size:13px; color:var(--muted); border-left:3px solid var(--line); padding-left:12px; margin-top:16px}
   .tag{display:inline-block; font:700 10.5px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase;
     color:var(--muted); border:1px solid var(--line); border-radius:5px; padding:4px 7px; margin:3px 6px 0 0}
+
+  /* ---- print / PDF export: one slide per landscape page, light theme ---- */
+  @page{ size:1280px 720px; margin:0 }
+  @media print{
+    :root{ /* force light for a clean printed deck regardless of viewer theme */
+      --bg:#ffffff; --surface:#ffffff; --surface-2:#eef1f5; --ink:#131820; --muted:#59636f;
+      --line:#e0e5ec; --accent:#0c9b8a; --accent-ink:#0a7d6f; --pass:#1a9c5c; --warn:#b07d09;
+      --reject:#c23b2b; --term-bg:#0e141c; --term-ink:#cdd8e4; --term-dim:#7f8b9c;
+    }
+    html{scroll-snap-type:none}
+    .rail,.counter{display:none !important}
+    body{background:#fff}
+    .slide{min-height:0; height:720px; padding:56px 72px; border-bottom:none;
+      page-break-after:always; break-after:page; overflow:hidden}
+    .slide:last-child{page-break-after:auto; break-after:auto}
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact }
+  }
 </style>
 
 <div class="rail"><i id="railfill"></i></div>
