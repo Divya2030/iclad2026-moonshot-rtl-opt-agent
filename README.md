@@ -36,25 +36,35 @@ ASAP7 techlib per `ENV_PREPARATION.md`; `sv2v` on `PATH` (in the image).
 
 ## Reproduce
 ```bash
-# 1. official repo + our two Dockerfile fixes, then build
-git clone --recurse-submodules <ICLAD26-NVIDIA-Problems>
-cd ICLAD26-NVIDIA-Problems && git apply Dockerfile.patch
-docker build -t iclad-dev:v1 .
+# 0. clone THIS agent repo (contains the agent + Dockerfile.patch)
+git clone https://github.com/Divya2030/iclad2026-moonshot-rtl-opt-agent.git agent
 
-# 2. ASAP7 techlib (ENV_PREPARATION.md)
-mkdir -p techlib && git clone https://github.com/The-OpenROAD-Project/asap7sc7p5t_28.git techlib/asap7sc7p5t_28
+# 1. official problem repo + our two Dockerfile fixes, then build the image
+git clone --recurse-submodules \
+    https://github.com/ICLAD-Hackathon/ICLAD26-NVIDIA-Problems.git
+git -C ICLAD26-NVIDIA-Problems apply "$PWD/agent/Dockerfile.patch"
+docker build -t iclad-dev:v1 ICLAD26-NVIDIA-Problems
+
+# 2. ASAP7 techlib (see ENV_PREPARATION.md)
+cd ICLAD26-NVIDIA-Problems
+git clone https://github.com/The-OpenROAD-Project/asap7sc7p5t_28.git techlib/asap7sc7p5t_28
 ( cd techlib/asap7sc7p5t_28/LIB/NLDM && for f in *.lib.7z; do 7z x -y "$f"; done )
 
-# 3. place this agent dir at  async_fifo/verif_gate/  and install deps
+# 3. drop the agent into async_fifo/verif_gate/ (it resolves designs relative
+#    to the NVIDIA-Problems root) and install deps
+mkdir -p async_fifo/verif_gate && cp -r ../agent/* async_fifo/verif_gate/
 pip install -r async_fifo/verif_gate/requirements.txt
 
-# 4. run the gate on golden (sanity), any IP:
+# --- run everything below inside the container (or a host with the tools) ---
+# docker run --rm -it -v "$PWD:/workspace" -w /workspace iclad-dev:v1
+
+# 4. sanity: gate the golden RTL of any IP
 python3 async_fifo/verif_gate/run_gate.py \
     --config async_fifo/verif_gate/designs/prim_crc32.json \
     --candidate opentitan/hw/ip/prim/rtl --json verdict.json
 
-# 5. run the autonomous optimizer (needs EXPRESS_MODE_KEY):
-export EXPRESS_MODE_KEY=...          # Vertex AI Express key
+# 5. autonomous optimizer (needs a Vertex AI Express key)
+export EXPRESS_MODE_KEY=...
 python3 async_fifo/verif_gate/opt_agent.py \
     --config async_fifo/verif_gate/designs/prim_crc32.json \
     --backend vertex --model gemini-3-flash-preview \
@@ -62,7 +72,8 @@ python3 async_fifo/verif_gate/opt_agent.py \
 # -> writes best RTL + agent_summary.json (adopted changes, PPA, usage: calls/tokens)
 ```
 Requires on PATH: `yosys`, `iverilog`/`vvp`, `sta`, `sv2v` (all in `iclad-dev:v1`);
-`ASAP7_LIB_DIR` set to the techlib NLDM dir (defaults to the Docker `/workspace` path).
+`ASAP7_LIB_DIR` defaults to the Docker `/workspace/techlib/...` path (override for host runs).
+Offline check without a key: add `--backend mock` to step 5.
 
 ## Adding an IP
 Drop a `designs/<ip>.json` (top module, RTL files, sim mode, synth flow, equiv);
