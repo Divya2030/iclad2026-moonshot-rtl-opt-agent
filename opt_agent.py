@@ -301,14 +301,33 @@ def parse_change(text: str):
     return change
 
 
+def _genai_client():
+    """Build a google-genai client from whatever auth the environment provides,
+    so the agent runs against the provisioned hackathon account in any of its
+    forms:
+      1. EXPRESS_MODE_KEY            -> Vertex AI Express Mode (AgentSetup.md)
+      2. GOOGLE_CLOUD_PROJECT        -> Vertex AI via ADC (works in Cloud Shell)
+      3. GOOGLE_API_KEY / GEMINI_API_KEY -> Gemini Developer API (AI Studio key)
+    """
+    from google import genai
+    express = os.environ.get("EXPRESS_MODE_KEY")
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    devkey = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
+    if express:
+        return genai.Client(vertexai=True, api_key=express,
+                            http_options={"headers": {"X-Goog-User-Project": ""}})
+    if project:
+        loc = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+        return genai.Client(vertexai=True, project=project, location=loc)
+    if devkey:
+        return genai.Client(api_key=devkey)
+    raise RuntimeError("no model auth found: set EXPRESS_MODE_KEY, or "
+                       "GOOGLE_CLOUD_PROJECT (+ ADC), or GOOGLE_API_KEY")
+
+
 def propose_vertex(model, best_verdict, memory, objective, usage, max_retries=5):
-    from google import genai                       # noqa: imported lazily
     from google.genai.errors import APIError
-    key = os.environ.get("EXPRESS_MODE_KEY")
-    if not key:
-        raise RuntimeError("EXPRESS_MODE_KEY not set (required for --backend vertex)")
-    client = genai.Client(vertexai=True, api_key=key,
-                          http_options={"headers": {"X-Goog-User-Project": ""}})
+    client = _genai_client()
     prompt = build_prompt(best_verdict, memory, objective)
     delay = 2
     for attempt in range(1, max_retries + 1):
