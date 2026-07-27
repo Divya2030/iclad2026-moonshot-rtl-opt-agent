@@ -176,6 +176,18 @@ best_snapshots/iter_NN/ immutable RTL + verdict snapshot for each adopted iterat
 - `async_fifo`, `prim_count`, `prim_lfsr`, `prim_arbiter_fixed`, and `prim_subreg` currently fail at the simulation or equivalence stage of the gate (`sim_failed` / `equivalence_not_verified`) due to testbench/harness mismatches in this environment, not due to the optimization logic itself. These configs are included to show the intended multi-IP design of the system, but are not claimed as verified results.
 - `run_all_designs_oneshot.sh` is a batch runner across all 7 configs; expect it to succeed on `prim_crc32` and `sha512`'s baseline, and report gate rejections on the others until their testbench wiring is fixed.
 
+## Optimization Objectives vs. What Is Always Checked
+
+The agent supports three optimization objectives via `--objective`: `area`, `timing`, and `power`. The examples in this README use `--objective area`, since that is what has been most extensively tested in live runs — but **timing (WNS) and power are measured and enforced on every run regardless of which objective is selected**:
+
+- The gate reports `wns_ps` (worst negative slack) and `total_power_w` for every candidate, whatever the chosen objective (see `agent_summary.json`).
+- **No timing regression is ever allowed**, even when optimizing for area: a candidate is rejected with `timing_regressed` if it would worsen WNS relative to the current best, regardless of `--objective`. This is why area-only runs still show `REJECT (timing_regressed)` decisions — the safety constraint applies unconditionally.
+- To actively *minimize* timing or power instead of area, run with `--objective timing` or `--objective power`. These paths use the same gate and the same adoption rules; only the metric being optimized changes.
+
+In short: **area is the only metric that has been used as the live optimization target in the runs cited in this README, but timing and power are never ignored — they are always measured and always enforced as hard constraints.**
+
+---
+
 ## Verification & Adoption Policy
 
 - A candidate is adopted **only if**: (1) simulation passes, (2) formal or simulation-miter equivalence is verified, (3) timing does not regress vs. the current best, and (4) the objective metric strictly improves.
