@@ -1,0 +1,24 @@
+{
+  "design": "prim_count",
+  "root": "opentitan/hw/ip/prim",
+  "top": "prim_count",
+  "rtl_dir": "rtl",
+  "rtl_files": ["prim_count.sv"],
+  "syn_dir": "yosys_syn",
+  "equiv": { "enabled": true, "defines": [] },
+  "sim": {
+    "mode": "iverilog_tb",
+    "cwd": ".",
+    "tb_files": ["pre_dv/prim_count/prim_count_sim.sv"],
+    "iverilog_args": ["-g2012"]
+  },
+  "syn": {
+    "mode": "tcl",
+    "steps": [["yosys", "-c", "syn.tcl"], ["sta", "run_sta.tcl"]],
+    "filelist_env": "VERILOG_FILELIST",
+    "stat": "syn_results/synth_stat.txt",
+    "timing": "reports/sta_timing_report.txt",
+    "paths": "reports/sta_timing_paths.txt",
+    "power": "reports/sta_power_report.txt"
+  }
+}
