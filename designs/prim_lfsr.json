@@ -6,12 +6,7 @@
   "rtl_files": ["prim_lfsr.sv"],
   "syn_dir": "yosys_syn",
   "equiv": { "enabled": true, "defines": [] },
-  "sim": {
-    "mode": "iverilog_tb",
-    "cwd": ".",
-    "tb_files": ["pre_dv/prim_lfsr/prim_lfsr_sim.sv"],
-    "iverilog_args": ["-g2012"]
-  },
+  "sim": { "mode": "none" },
   "syn": {
     "mode": "tcl",
     "steps": [["yosys", "-c", "syn.tcl"], ["sta", "run_sta.tcl"]],

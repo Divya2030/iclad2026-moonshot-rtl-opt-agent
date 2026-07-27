@@ -22,7 +22,7 @@ START_TIME=$(date +%s)
 
 print_header() {
     echo -e "${CYAN}================================================================================${RESET}"
-    echo -e "${BOLD}${WHITE}  🚀 MOONSHOT RTL OPTIMIZATION ENGINE v2.5 — ENTERPRISE EDA SUITE${RESET}"
+    echo -e "${BOLD}${WHITE}  🚀 MOONSHOT RTL OPTIMIZATION ENGINE v2.5 E${RESET}"
     echo -e "${CYAN}  Verification-Gated Autonomous Datapath & Logic Optimization Engine${RESET}"
     echo -e "${CYAN}================================================================================${RESET}"
 }
@@ -189,9 +189,36 @@ for idx in "${!DESIGN_FILES[@]}"; do
         echo -e "${DIM}  Status Tracking : ${GREEN}${COMPLETED_COUNT} Completed${RESET} | ${CYAN}1 Active${RESET} | ${MAGENTA}${PENDING_NUM} Pending in Queue${RESET}"
         echo -e "${DIM}  Config File     : async_fifo/verif_gate/designs/${CFG_NAME}${RESET}"
         echo -e "${DIM}  Target Model    : gemini-3.6-flash | Objective: area | Iterations: 8${RESET}"
-        echo -e "${CYAN--------------------------------------------------------------------------------${RESET}"
+        echo -e "${CYAN}--------------------------------------------------------------------------------${RESET}"
 
         IP_START=$(date +%s)
+
+        # Fast baseline pre-check (no LLM calls) -- skip the 8-iteration live
+        # run entirely if the golden baseline doesn't even pass sim+equiv.
+        BASE_ROOT=$(python3 -c "import json; print(json.load(open('$config_file'))['root'])" 2>/dev/null)
+        BASE_RTLDIR=$(python3 -c "import json; print(json.load(open('$config_file')).get('rtl_dir','rtl'))" 2>/dev/null)
+        BASE_CANDIDATE="${BASE_ROOT}/${BASE_RTLDIR}"
+
+        BASELINE_OK=$($DOCKER_CMD run --rm \
+            -v "$NVIDIA_DIR:/workspace" \
+            -w /workspace \
+            iclad-dev:v1 bash -c "
+                python3 async_fifo/verif_gate/run_gate.py \
+                    --config $config_file \
+                    --candidate $BASE_CANDIDATE \
+                    --json /tmp/pre_${DESIGN_NAME}.json >/dev/null 2>&1
+                python3 -c \"import json; v=json.load(open('/tmp/pre_${DESIGN_NAME}.json')); print('OK' if v.get('sim',{}).get('passed') and v.get('equiv',{}).get('verified') else 'FAIL')\" 2>/dev/null
+            " 2>/dev/null | tail -1)
+
+        if [ "$BASELINE_OK" != "OK" ]; then
+            echo -e "${YELLOW}⏭️  [SKIP] IP '${DESIGN_NAME}' baseline does not pass sim+equiv gate -- skipping live LLM run (no tokens spent).${RESET}\n"
+            WARN_COUNT=$((WARN_COUNT + 1))
+            COMPLETED_COUNT=$((COMPLETED_COUNT + 1))
+            continue
+        fi
+
+        echo -e "${GREEN}✅ Baseline passes -- running live 8-iteration optimization...${RESET}"
+
         if $DOCKER_CMD run --rm \
             -e GEMINI_API_KEY="$GEMINI_API_KEY" \
             -v "$NVIDIA_DIR:/workspace" \
